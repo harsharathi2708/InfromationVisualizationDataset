@@ -1,0 +1,110 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v2.json",
+  "description": "Separate bar chart and scatter plot showing medal counts and athlete details by country.",
+  "data": {
+    "url": "https://raw.githubusercontent.com/harsharathi2708/InfromationVisualizationDataset/refs/heads/main/top15_countries.csv"
+  },
+  "transform": [
+    {"filter": {"field": "medal", "oneOf": ["Gold", "Silver", "Bronze"]}}
+  ],
+  "vconcat": [
+    {
+      "title": "Medals by Country Over the Years",
+      "selection": {
+        "year-select": {
+          "type": "single",
+          "fields": ["year"],
+          "bind": {
+            "input": "select",
+            "options": ["2000", "2004", "2008", "2012", "2016", "2020"]
+          },
+          "init": {"year": "2016"}
+        },
+        "medal-select": {
+          "type": "multi",
+          "fields": ["medal"],
+          "bind": "legend"
+        },
+        "noc-select": {"type": "multi", "fields": ["noc"]}
+      },
+      "transform": [
+        {
+          "aggregate": [{"op": "count", "as": "MedalCount"}],
+          "groupby": ["noc", "medal", "year"]
+        },
+        {"filter": {"selection": "year-select"}},
+        {"filter": {"selection": "medal-select"}},
+        {"filter": {"selection": "sport-select"}}
+      ],
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "field": "MedalCount",
+          "type": "quantitative",
+          "title": "Number of Medals"
+        },
+        "y": {
+          "field": "noc",
+          "type": "nominal",
+          "sort": "-x",
+          "title": "Countries"
+        },
+        "color": {
+          "condition": {
+            "selection": "noc_select",
+            "field": "medal",
+            "type": "nominal",
+            "scale": {
+              "domain": ["Gold", "Silver", "Bronze"],
+              "range": ["#FFD700", "#C0C0C0", "#CD7F32"]
+            }
+          },
+          "value": "grey"
+        },
+        "tooltip": [
+          {"field": "noc", "type": "nominal", "title": "Country"},
+          {"field": "medal", "type": "nominal", "title": "Medal"},
+          {"field": "MedalCount", "type": "quantitative", "title": "Count"}
+        ]
+      },
+      "width": 500
+    },
+    {
+      "title": "Medal Count by Country According to Sport",
+      "selection": {
+        "sport-select": {"type": "interval", "encodings": ["x", "y"]}
+      },
+      "transform": [
+        {
+          "aggregate": [{"op": "count", "as": "MedalCount"}],
+          "groupby": ["noc", "sport", "year", "medal"]
+        },
+        {"filter": {"selection": "year-select"}},
+        {"filter": {"selection": "medal-select"}},
+        {"filter": {"selection": "noc-select"}}
+      ],
+      "mark": "circle",
+      "encoding": {
+        "y": {"field": "sport", "type": "nominal", "title": "Sport"},
+        "x": {"field": "noc", "type": "nominal", "title": "Country"},
+        "size": {
+          "field": "MedalCount",
+          "type": "quantitative",
+          "title": "Medal Count",
+          "scale": {"range": [10, 500]}
+        },
+        "tooltip": [
+          {"field": "noc", "type": "nominal", "title": "Country"},
+          {"field": "sport", "type": "nominal", "title": "Sport"},
+          {
+            "field": "MedalCount",
+            "type": "quantitative",
+            "title": "Medal Count"
+          }
+        ]
+      },
+      "width": 500
+    }
+  ],
+  "config": {}
+}
