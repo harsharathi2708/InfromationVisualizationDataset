@@ -1,0 +1,186 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Separate bar chart and heat map showing medal counts and athlete details by country.",
+  "data": {
+    "url": "https://raw.githubusercontent.com/harsharathi2708/InfromationVisualizationDataset/refs/heads/main/top15_countries_sport.csv"
+  },
+  "transform": [
+    {"filter": {"field": "medal", "oneOf": ["Gold", "Silver", "Bronze"]}}
+  ],
+  "title": {
+    "text": "Medal Distribution Explorer",
+    "anchor": "middle",
+    "fontSize": 25,
+    "offset": 40
+  },
+  "vconcat": [
+    {
+      "hconcat": [
+        {
+          "params": [
+            {
+              "name": "year_param",
+              "select": {"type": "point", "fields": ["year"]},
+              "bind": {
+                "input": "select",
+                "options": [
+                  "All",
+                  "1896",
+                  "1900",
+                  "1904",
+                  "1906",
+                  "1908",
+                  "1912",
+                  "1920",
+                  "1924",
+                  "1928",
+                  "1932",
+                  "1936",
+                  "1948",
+                  "1952",
+                  "1956",
+                  "1960",
+                  "1964",
+                  "1968",
+                  "1972",
+                  "1976",
+                  "1980",
+                  "1984",
+                  "1988",
+                  "1992",
+                  "1994",
+                  "1996",
+                  "1998",
+                  "2000",
+                  "2002",
+                  "2004",
+                  "2006",
+                  "2008",
+                  "2010",
+                  "2012",
+                  "2014",
+                  "2016"
+                ],
+                "name": "Select Year"
+              }
+            },
+            {
+              "name": "season_param",
+              "select": {"type": "point", "fields": ["season"]},
+              "bind": {
+                "input": "select",
+                "options": ["All", "Winter", "Summer"],
+                "name": "Select Season"
+              }
+            },
+            {
+              "name": "medal_param",
+              "select": {"type": "point", "fields": ["medal"]},
+              "bind": "legend"
+            }
+          ],
+          "transform": [
+            {
+              "calculate": "year_param == 'All' ? null : datum.year",
+              "as": "selected_year"
+            },
+            {
+              "aggregate": [{"op": "count", "as": "MedalCount"}],
+              "groupby": ["noc", "medal", "year", "season", "sport"]
+            },
+            {"filter": {"param": "year_param"}},
+            {"filter": {"param": "medal_param"}},
+            {"filter": {"param": "sport_param"}},
+            {"filter": {"param": "season_param"}}
+          ],
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": "MedalCount",
+              "type": "quantitative",
+              "title": "Number of Medals"
+            },
+            "y": {
+              "field": "noc",
+              "type": "nominal",
+              "sort": "-x",
+              "title": "Country"
+            },
+            "color": {
+              "field": "medal",
+              "type": "nominal",
+              "title": "Medal",
+              "scale": {
+                "domain": ["Gold", "Silver", "Bronze"],
+                "range": ["#FFD700", "#A8A9AD", "#D2691E"]
+              }
+            },
+            "tooltip": [
+              {"field": "noc", "type": "nominal", "title": "Country"},
+              {"field": "medal", "type": "nominal", "title": "Medal"},
+              {"field": "MedalCount", "type": "quantitative", "title": "Count"},
+              {"field": "year", "type": "quantitative", "title": "Year"},
+              {"field": "season", "type": "nominal", "title": "Season"},
+              {"field": "sport", "type": "nominal", "title": "Sport"}
+            ]
+          },
+          "width": 400,
+          "height": 500
+        },
+        {
+          "params": [
+            {
+              "name": "sport_param",
+              "select": {"type": "interval", "encodings": ["x", "y"]},
+              "empty": false
+            }
+          ],
+          "transform": [
+            {
+              "aggregate": [{"op": "count", "as": "MedalCount"}],
+              "groupby": ["noc", "sport", "year", "medal", "season"]
+            },
+            {"filter": {"param": "year_param"}},
+            {"filter": {"param": "medal_param"}},
+            {"filter": {"param": "season_param"}}
+          ],
+          "mark": "rect",
+          "encoding": {
+            "y": {"field": "sport", "type": "nominal", "title": "Sport"},
+            "x": {
+              "field": "noc",
+              "type": "nominal",
+              "title": "Country",
+              "axis": {"labelAngle": 0}
+            },
+            "color": {
+              "field": "MedalCount",
+              "type": "quantitative",
+              "title": "Medal Count",
+              "value": "#377EB8"
+            },
+            "tooltip": [
+              {"field": "noc", "type": "nominal", "title": "Country"},
+              {"field": "sport", "type": "nominal", "title": "Sport"},
+              {
+                "field": "MedalCount",
+                "type": "quantitative",
+                "title": "Medal Count"
+              }
+            ]
+          },
+          "width": 500,
+          "height": 500
+        }
+      ],
+      "spacing": 30
+    }
+  ],
+  "spacing": 50,
+  "config": {
+    "title": {"fontSize": 15},
+    "legend": {"orient": "right", "titleFontSize": 15, "labelFontSize": 15},
+    "padding": 20,
+    "axis": {"titleFontSize": 15, "titlePadding": 20, "labelFontSize": 13}
+  }
+}
